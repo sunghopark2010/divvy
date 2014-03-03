@@ -16,9 +16,9 @@ class Uploader(object):
         self._station_upload_query = "insert into stations (station_id, name, latitude, longitude, capacity, start_date)" \
                                      " values (%d, '%s', %10.8f, %10.8f, %d, '%s'::date);"
         self._trip_upload_query = "insert into trips (trip_id, start_time, end_time, bike_id, " \
-                                  "from_station_id, to_station_id, user_type_cd, gender_cd, birthyear) " \
+                                  "from_station_id, to_station_id, user_type_cd, gender_cd, birthyear, duration) " \
                                   "values (%d, '%s'::timestamp without time zone, " \
-                                  "'%s'::timestamp without time zone, %d, %d, %d, '%s', %s, %s)"
+                                  "'%s'::timestamp without time zone, %d, %d, %d, '%s', %s, %s, %d)"
 
     def upload_station(self, station):
         columns = station.split(',')
@@ -28,7 +28,9 @@ class Uploader(object):
         columns = trip.split(',')
         gender_cd = "'%s'" % columns[10].lower() if columns[10] else 'null'
         birthyear = columns[11] if columns[11] is not None and columns[11] != '\r\n' else 'null'
-        self._execute_query(self._trip_upload_query % (int(columns[0]), columns[1], columns[2], int(columns[3]), int(columns[5]), int(columns[7]), columns[9].lower(), gender_cd, birthyear))
+        self._execute_query(self._trip_upload_query % (int(columns[0]), columns[1], columns[2], int(columns[3]),
+                                                       int(columns[5]), int(columns[7]), columns[9].lower(),
+                                                       gender_cd, birthyear, int(columns[4])))
 
     def update_trip_duration(self, trip):
         columns = trip.split(',')
@@ -67,7 +69,7 @@ if __name__ == '__main__':
     # connect to db
     results = dict()
     uploader = Uploader(host='sunghopark.info', port=5432, dbname='divvy', user=os.environ['DB_USER'], password=os.environ['DB_PASSWORD'])
-    '''
+
     # upload station data
     for index, station in enumerate(open('../data/Divvy_Stations_2013.csv').readlines()[1:]):
         uploader.upload_station(station)
@@ -83,19 +85,6 @@ if __name__ == '__main__':
     # upload trip data
     for index, trip in enumerate(open('../data/divvy_stations.csv').readlines()[759504:]):
         uploader.upload_trip(trip)
-        if len(uploader.get_errors()) >= 10:
-            break
-        if index % 500 == 0:
-            pprint('index: %d' % index)
-            uploader.commit()
-    uploader.commit()
-    pprint(len(uploader.get_successes()))
-    pprint(uploader.get_errors())
-    '''
-
-    # upload trip duration
-    for index, trip in enumerate(open('../data/divvy_trips.csv').readlines()[1:]):
-        uploader.update_trip_duration(trip)
         if len(uploader.get_errors()) >= 10:
             break
         if index % 500 == 0:

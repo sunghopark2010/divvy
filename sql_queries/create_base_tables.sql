@@ -21,7 +21,8 @@ create table trips (
 	to_station_id integer not null references stations (station_id),
 	user_type_cd varchar(16) check (user_type_cd in ('customer', 'subscriber') or user_type_cd is null),
 	gender_cd varchar(8) check (gender_cd in ('female', 'male') or gender_cd is null),
-	birthyear integer
+	birthyear integer,
+	duration integer not null
 );
 create index trips_trip_id on trips(trip_id);
 create index trips_from_station_id on trips(from_station_id);
