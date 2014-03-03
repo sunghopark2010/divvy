@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Divvy in August</title>
+<style>
+
+@import url(http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:400,700);
+
+body {
+  font-family: "Helvetica Neue";
+  margin: 40px auto;
+  width: 1024px;
+  min-height: 2000px;
+}
+
+#body {
+  position: relative;
+}
+
+footer {
+  padding: 2em 0 1em 0;
+  font-size: 12px;
+}
+
+h1 {
+  font-size: 96px;
+  margin-top: .3em;
+  margin-bottom: 0;
+}
+
+h1 + h2 {
+  margin-top: 0;
+}
+
+h2 {
+  font-weight: 400;
+  font-size: 28px;
+}
+
+h1, h2 {
+  font-family: "Yanone Kaffeesatz";
+  text-rendering: optimizeLegibility;
+}
+
+#body > p {
+  line-height: 1.5em;
+  width: 640px;
+  text-rendering: optimizeLegibility;
+}
+
+#graphs {
+  padding: 10px 0;
+}
+
+.graph {
+  display: inline-block;
+  height: 201px;
+  margin-bottom: 20px;
+}
+
+#filters {
+  padding: 10px 0;
+}
+
+.filter {
+  display: inline-block;
+  height: 151px;
+  margin-bottom: 20px;
+}
+
+.reset {
+  padding-left: 1em;
+  font-size: smaller;
+  color: #ccc;
+}
+
+.background.bar {
+  fill: #ccc;
+}
+
+.foreground.bar {
+  fill: steelblue;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.brush rect.extent {
+  fill: steelblue;
+  fill-opacity: .125;
+}
+
+.brush .resize path {
+  fill: #eee;
+  stroke: #666;
+}
+
+#velocity-graph {
+    width: 300px;
+}
+
+#velocity-foreground-bar {
+    fill: green;
+}
+
+aside {
+  position: absolute;
+  left: 740px;
+  font-size: smaller;
+  width: 220px;
+}
+
+</style>
+
+<div id="body">
+
+    <p>Divvy data competition</p>
+
+    <div id="filters">
+        <div id="gender-filter" class="filter">
+            <div class="filter-title">Gender</div>
+        </div>
+        <div id="age-filter" class="filter">
+            <div class="filter-title">Age</div>
+        </div>
+        <div id="hour-filter" class="filter">
+            <div class="filter-title">Time of Day</div>
+        </div>
+        <div id="date-filter" class="filter">
+            <div class="filter-title">Date</div>
+        </div>
+    </div>
+
+    <div id="graphs">
+        <div id="duration-graph" class="graph">
+            <div class="graph-title">Duration</div>
+        </div>
+        <div id="distance-graph" class="graph">
+            <div class="graph-title">Distance</div>
+        </div>
+        <div id="velocity-graph" class="graph">
+            <div class="graph-title">Velocity</div>
+        </div>
+    </div>
+
+    <aside id="totals"><span id="active">-</span> of <span id="total">-</span> trips selected.</aside>
+
+</div>
+
+<script src="/static/crossfilter.v1.min.js"></script>
+<script src="/static/d3.v3.min.js"></script>
+<script>
+    d3.csv("/static/trips_start_time.csv", function(error, pickups) {
+
+        <!-- miscellaneous functions and steps -->
+        function parseDate(d) {
+            return new Date(2013, d.substring(0, 2)-1, d.substring(2, 4));
+        };
+
+        pickups.forEach(function(d, i) {
+            d.date = parseDate(d.date);
+            d.gender = +d.gender;
+            d.age = +d.age;
+            d.hour = +d.hour;
+            d.duration = +d.duration;
+            d.distance = +d.distance;
+            d.velocity = +d.velocity;
+        });
+
+        <!-- create two important functions filterChart and graphChart -->
+
+        function graphChart() {
+            if (!graphChart.id) graphChart.id = 0;
+
+            var id = graphChart.id++,
+                margin = {top: 10, right: 10, bottom: 20, left: 10},
+                x,
+                y = d3.scale.linear().range([150, 0]),
+                tickValues,
+                axis = d3.svg.axis().orient("bottom"),
+                dimension,
+                group,
+                round,
+                xInterval,
+                barId;
+
+            function chart(div) {
+                var width = x.range()[1], height = y.range()[0];
+
+                y.domain([0, group.top(1)[0].value])
+
+                div.each(function() {
+                    var div = d3.select(this), g = div.select("g");
+
+                    if (g.empty()) {
+                        g = div.append("svg")
+                            .attr("width", width + margin.left + margin.right)
+                            .attr("height", height + margin.top + margin.bottom)
+                            .append("g")
+                            .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+
+                        g.selectAll(".bar")
+                            .data(["background", "foreground"])
+                            .enter().append("path")
+                            .attr("class", function(d) { return d + " bar"; })
+                            .attr("id", function(d) { return barId + "-" + d + "-bar"; })
+                            .datum(group.all())
+
+                        g.append("g")
+                            .attr("class", "axis")
+                            .attr("transform", "translate(0, " + height + ")")
+                            .call(axis);
+                    }
+
+                    g.selectAll(".bar").attr("d", barPath);
+                });
+
+                function barPath(groups) {
+                    var path = [],
+                        i = -1,
+                        n = groups.length,
+                        d;
+                    while (++i < n) {
+                        d = groups[i];
+                        path.push("M", x(d.key), ",", height, "V", y(d.value), "h" + (xInterval-1) + "V", height);
+                    }
+                    return path.join("");
+                }
+            }
+
+            chart.dimension = function(_) {
+                dimension = _;
+                return chart;
+            }
+
+            chart.group = function(_) {
+                group = _;
+                return chart;
+            }
+
+            chart.x = function(_) {
+                x = _;
+                axis.scale(x);
+                return chart;
+            }
+
+            chart.xInterval = function(_) {
+                xInterval = _;
+                return chart;
+            }
+
+            chart.barId = function(_) {
+                barId = _;
+                return chart;
+            }
+
+            chart.tickValues = function(_) {
+                tickValues = _;
+                axis.tickValues(tickValues);
+                return chart;
+            }
+
+            return chart;
+        }
+
+        function filterChart() {
+            if (!filterChart.id) filterChart.id = 0;
+
+            var id = filterChart.id++,
+                margin = {top: 10, right: 10, bottom: 20, left: 10},
+                x,
+                y = d3.scale.linear().range([100, 0]),
+                tickValues,
+                axis = d3.svg.axis().orient("bottom"),
+                brush = d3.svg.brush(),
+                brushDirty,
+                dimension,
+                group,
+                round,
+                xInterval,
+                barId,
+                tickFormat;
+
+            function chart(div) {
+                var width = x.range()[1], height = y.range()[0];
+
+                y.domain([0, group.top(1)[0].value])
+
+                div.each(function() {
+                    var div = d3.select(this), g = div.select("g");
+
+                    if (g.empty()) {
+                        div.select(".filter-title").append("a")
+                            .attr("href", "javascript:reset(" + id + ")")
+                            .attr("class", "reset")
+                            .text("reset")
+                            .style("display", "none");
+
+                        g = div.append("svg")
+                            .attr("width", width + margin.left + margin.right)
+                            .attr("height", height + margin.top + margin.bottom)
+                            .append("g")
+                            .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+
+                        g.append("clipPath")
+                            .attr("id", "clip-" + id)
+                            .append("rect")
+                            .attr("width", width)
+                            .attr("height", height);
+
+                        g.selectAll(".bar")
+                            .data(["background", "foreground"])
+                            .enter().append("path")
+                            .attr("class", function(d) { return d + " bar"; })
+                            .attr("id", function(d) { return barId + "-" + d + "-bar"; })
+                            .datum(group.all())
+
+                        g.append("g")
+                            .attr("class", "axis")
+                            .attr("transform", "translate(0, " + height + ")")
+                            .call(axis);
+
+                        g.selectAll(".foreground.bar")
+                            .attr("clip-path", "url(#clip-" + id + ")");
+
+                        // Initialize the brush component with pretty resize handles.
+                        var gBrush = g.append("g").attr("class", "brush").call(brush);
+                        gBrush.selectAll("rect").attr("height", height);
+                        gBrush.selectAll(".resize").append("path").attr("d", resizePath);
+                    }
+
+                     // Only redraw the brush if set externally.
+                    if (brushDirty) {
+                        brushDirty = false;
+                        g.selectAll(".brush").call(brush);
+                        div.select(".title a").style("display", brush.empty() ? "none" : null);
+                        if (brush.empty()) {
+                            g.selectAll("#clip-" + id + " rect")
+                            .attr("x", 0)
+                            .attr("width", width);
+                        } else {
+                            var extent = brush.extent();
+                            g.selectAll("#clip-" + id + " rect")
+                            .attr("x", x(extent[0]))
+                            .attr("width", x(extent[1]) - x(extent[0]));
+                        }
+                    }
+
+                    g.selectAll(".bar").attr("d", barPath);
+                });
+
+                function barPath(groups) {
+                    var path = [],
+                        i = -1,
+                        n = groups.length,
+                        d;
+                    while (++i < n) {
+                        d = groups[i];
+                        path.push("M", x(d.key), ",", height, "V", y(d.value), "h" + (xInterval-1) + "V", height);
+                    }
+                    return path.join("");
+                }
+
+                function resizePath(d) {
+                    var e = +(d == "e"),
+                        x = e ? 1 : -1,
+                        y = height / 3;
+                        return "M" + (.5 * x) + "," + y
+                            + "A6,6 0 0 " + e + " " + (6.5 * x) + "," + (y + 6)
+                            + "V" + (2 * y - 6)
+                            + "A6,6 0 0 " + e + " " + (.5 * x) + "," + (2 * y)
+                            + "Z"
+                            + "M" + (2.5 * x) + "," + (y + 8)
+                            + "V" + (2 * y - 8)
+                            + "M" + (4.5 * x) + "," + (y + 8)
+                            + "V" + (2 * y - 8);
+                }
+            }
+
+            brush.on("brushstart.chart", function() {
+                var div = d3.select(this.parentNode.parentNode.parentNode);
+                div.select(".title a").style("display", null);
+            });
+
+            brush.on("brush.chart", function() {
+                var g = d3.select(this.parentNode),
+                extent = brush.extent();
+                if (round) g.select(".brush")
+                    .call(brush.extent(extent = extent.map(round)))
+                    .selectAll(".resize")
+                    .style("display", null);
+                g.select("#clip-" + id + " rect")
+                    .attr("x", x(extent[0]))
+                    .attr("width", x(extent[1]) - x(extent[0]));
+                dimension.filterRange(extent);
+            });
+
+            brush.on("brushend.chart", function() {
+                if (brush.empty()) {
+                var div = d3.select(this.parentNode.parentNode.parentNode);
+                    div.select(".title a").style("display", "none");
+                    div.select("#clip-" + id + " rect").attr("x", null).attr("width", "100%");
+                dimension.filterAll();
+                }
+            });
+
+            chart.dimension = function(_) {
+                if (!arguments.length) return dimension;
+                dimension = _;
+                return chart;
+            }
+
+            chart.group = function(_) {
+                if (!arguments.length) return group;
+                group = _;
+                return chart;
+            }
+
+            chart.x = function(_) {
+                if (!arguments.length) return x;
+                x = _;
+                axis.scale(x);
+                brush.x(x);
+                return chart;
+            }
+
+            chart.xInterval = function(_) {
+                if (!arguments.length) return xInterval;
+                xInterval = _;
+                return chart;
+            }
+
+            chart.barId = function(_) {
+                if (!arguments.length) return barId;
+                barId = _;
+                return chart;
+            }
+
+            chart.tickValues = function(_) {
+                if (!arguments.length) return tickValues;
+                tickValues = _;
+                axis.tickValues(tickValues);
+                return chart;
+            }
+
+            chart.round = function(_) {
+                if (!arguments.length) return round;
+                round = _;
+                return chart;
+            }
+
+            chart.filter = function(_) {
+                if (_) {
+                    brush.extent(_);
+                    dimension.filterRange(_);
+                } else {
+                    brush.clear();
+                    dimension.filterAll();
+                }
+                brushDirty = true;
+                return chart;
+            }
+
+            chart.tickFormat = function(_) {
+                if (!arguments.length) return tickFormat;
+                tickFormat = _;
+                axis.tickFormat(_);
+                return chart;
+            }
+
+            return d3.rebind(chart, brush, "on");
+        }
+
+        <!-- rendering -->
+
+        // Create the crossfilter for the relevant dimensions and groups.
+        var pickup = crossfilter(pickups),
+            all = pickup.groupAll(),
+            gender = pickup.dimension(function(d) { return d.gender; }),
+            genders = gender.group(),
+            age = pickup.dimension(function(d) { return Math.min(69, Math.max(20, d.age)); }),
+            ages = age.group(function(d) { return Math.floor(d / 5) * 5; }),
+            hour = pickup.dimension(function(d) { return d.hour; }),
+            hours = hour.group(),
+            date = pickup.dimension(function(d) { return d.date; }),
+            dates = date.group(d3.time.day),
+            duration = pickup.dimension(function(d) { return Math.min(7200, d.duration); }),
+            durations = duration.group(function(d) { return Math.floor(d / 180) * 180; }),
+            distance = pickup.dimension(function(d) { return d.distance; }),
+            distances = distance.group(function(d) { return Math.floor(d); }),
+            velocity = pickup.dimension(function(d) { return Math.min(50, d.velocity); }),
+            velocities = velocity.group(function(d) { return Math.floor(d); });;
+
+
+        d3.selectAll("#total").text(d3.format(",d")(pickup.size()));
+
+        var filters = [
+            filterChart()
+                .dimension(gender)
+                .group(genders)
+                .round(Math.floor)
+                .tickValues([0, 1])
+                .tickFormat(function (d) {if (d == 0) { return "M"; } else { return "F"; }})
+                .xInterval(10)
+                .barId("gender")
+                .x(d3.scale.linear()
+                    .domain([0, 2])
+                    .rangeRound([0, 20])
+                ),
+
+            filterChart()
+                .dimension(age)
+                .group(ages)
+                .xInterval(10)
+                .barId("age")
+                .x(d3.scale.linear()
+                    .domain([20, 70])
+                    .rangeRound([0, 10 * 10])
+                ),
+
+            filterChart()
+                .dimension(hour)
+                .group(hours)
+                .xInterval(10)
+                .barId("hour")
+                .x(d3.scale.linear()
+                    .domain([0, 24])
+                    .rangeRound([0, 10 * 24])
+                ),
+
+            filterChart()
+                .dimension(date)
+                .group(dates)
+                .round(d3.time.day.round)
+                .tickValues([new Date(2013, 7, 3), new Date(2013, 7, 10), new Date(2013, 7, 17), new Date(2013, 7, 24), new Date(2013, 7, 31)])
+                .xInterval(10)
+                .barId("date")
+                .x(d3.time.scale()
+                    .domain([new Date(2013, 7, 1), new Date(2013, 8, 1)])
+                    .rangeRound([0, 10 * 31])
+                ).filter([new Date(2013, 7, 3), new Date(2013, 7, 5)])
+        ];
+
+        var graphs = [
+            graphChart()
+                .dimension(duration)
+                .group(durations)
+                .xInterval(5)
+                .barId("duration")
+                .x(d3.scale.linear()
+                    .domain([0, 7200])
+                    .rangeRound([0, 5 * 40])
+                ),
+
+            graphChart()
+                .dimension(distance)
+                .group(distances)
+                .xInterval(10)
+                .barId("distance")
+                .x(d3.scale.linear()
+                    .domain([0, 15])
+                    .rangeRound([0, 10 * 15])
+                ),
+
+            graphChart()
+                .dimension(velocity)
+                .group(velocities)
+                .xInterval(5)
+                .barId("velocity")
+                .x(d3.scale.linear()
+                    .domain([0, 50])
+                    .rangeRound([0, 5 * 50])
+                )
+        ];
+
+        var graph = d3.selectAll(".graph")
+            .data(graphs);
+
+        var filter = d3.selectAll(".filter")
+            .data(filters)
+            .each(function(d) { d.on("brush", renderAll).on("brushend", renderAll); });
+
+        function render(method) {
+            d3.select(this).call(method);
+        }
+
+        function renderAll() {
+            graph.each(render);
+            filter.each(render);
+            d3.select("#active").text(d3.format(",d")(all.value()));
+        }
+
+        renderAll();
+
+        <!-- window functions -->
+        window.filter = function(filters) {
+            filters.forEach(function(d, i) { charts[i].filter(d); });
+            renderAll();
+        };
+
+        window.reset = function(i) {
+            charts[i].filter(null);
+            renderAll();
+        };
+    });
+</script>
