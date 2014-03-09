@@ -16,6 +16,7 @@
         text-align: center;
         height: 100%;
         font: 12px sans-serif;
+        color: #ccc;
     }
 
     #controller-left {
@@ -42,7 +43,10 @@
     .filter {
         display: inline-block;
         height: 151px;
-        margin-bottom: 10px;
+    }
+
+    .filter-title {
+        font-weight: bold;
     }
 
     .reset {
@@ -61,12 +65,13 @@
 
     .axis path, .axis line {
       fill: none;
-      stroke: #000;
+      stroke: #ccc;
       shape-rendering: crispEdges;
     }
 
     .axis text {
-      font: 10px sans-serif;
+        font: 10px sans-serif;
+        fill: #ccc;
     }
 
     .brush rect.extent {
@@ -77,6 +82,29 @@
     .brush .resize path {
       fill: #eee;
       stroke: #666;
+    }
+
+    #sample-size {
+        font-size: smaller;
+    }
+
+    #legend {
+        font-size: smaller;
+    }
+
+    .circle {
+        width: 20px;
+        height: 20px;
+    }
+
+    .td-circle {
+        width: 70px;
+        text-align: right;
+    }
+
+    .td-legend {
+        text-align: left;
+        padding-left: 5px
     }
     </style>
     <title>Divvy</title>
@@ -152,27 +180,41 @@
                 </td>
             </tr>
         </table>
-        <div id="sample_size">
+        <div id="sample-size">
             <table>
                 <tr>
-                    <td>Pick-up</td>
-                    <td><span id="num_sel_pickups">-</span> / <span id="num_total_pickups">-</span></td>
+                    <th>Pick-ups</th>
+                    <th>Drop-offs</th>
+                    <th>Total</th>
                 </tr>
                 <tr>
-                    <td>Drop-off</td>
-                    <td><span id="num_sel_dropoffs">-</span> / <span id="num_total_dropoffs">-</span></td>
+                    <td><span id="num_sel_pickups">-</span></td>
+                    <td><span id="num_sel_dropoffs">-</span></td>
+                    <td><span id="num_total_pickups">-</span></td>
                 </tr>
             </table>
         </div>
         <div id="legend">
             <table>
                 <tr>
-                    <td>Red circle</td>
-                    <td>Pick-up > Drop-off</td>
+                    <td class="td-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="circle">
+                            <circle cx="10" cy="10" r="10" fill="#880000" opacity="0.4"/>
+                        </svg>
+                    </td>
+                    <td class="td-legend">
+                        Pick-up > Drop-off
+                    </td>
                 </tr>
                 <tr>
-                    <td>Blue circle</td>
-                    <td>Pick-up < Drop-off</td>
+                    <td class="td-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="circle">
+                            <circle cx="10" cy="10" r="10" fill="#333399" opacity="0.4"/>
+                        </svg>
+                    </td>
+                    <td class="td-legend">
+                        Pick-up < Drop-off
+                    </td>
                 </tr>
             </table>
         </div>
@@ -456,7 +498,7 @@
                 if (!filterChart.id) filterChart.id = 0;
 
                 var id = filterChart.id++,
-                    margin = {top: 10, right: 10, bottom: 40, left: 10},
+                    margin = {top: 0, right: 10, bottom: 50, left: 10},
                     x,
                     y = d3.scale.linear().range([100, 0]),
                     axis = d3.svg.axis().orient("bottom"),
