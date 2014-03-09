@@ -82,7 +82,6 @@
     <title>Divvy</title>
 </head>
 <body>
-
     <div id="controller-left" class="controller">
         <table>
             <tr>
@@ -186,6 +185,7 @@
     <script src="/static/queue.v1.min.js"></script>
     <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDzF5hLaaoTuF_n801biub80XfUWyxAJds&sensor=false"></script>
     <script>
+
         <!-- Google map -->
         var map;
         var circles=[];
@@ -285,17 +285,18 @@
                     .dimension2(dMonth)
                     .group(pMonths)
                     .barId("month")
+                    .tickDisplay(["J", "J", "A"])
                     .x(d3.scale.linear()
                         .domain([0, 3])
                         .rangeRound([0, xWidth * 3])
-                    )
-                    .tickDisplay(["J", "J", "A"]),
+                    ),
 
                 filterChart()
                     .dimension(pDow)
                     .dimension2(dDow)
                     .group(pDows)
                     .barId("dow")
+                    .tickDisplay(["M", "T", "W", "T", "F", "S", "S"])
                     .x(d3.scale.linear()
                         .domain([0, 7])
                         .rangeRound([0, xWidth * 7])
