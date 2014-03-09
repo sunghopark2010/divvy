@@ -15,24 +15,24 @@ select
 		when dbs.distance <= 2 then 2
 		when dbs.distance <= 3 then 3
 		when dbs.distance <= 5 then 4
-		when dbs.distance <= 10 then 5
-		when dbs.distance > 10 then 6
+		when dbs.distance <= 8 then 5
+		when dbs.distance > 8 then 6
 	end as distance
 	, case
-		when t.duration <= 60 * 10 then 0
-		when t.duration <= 60 * 20 then 1
-		when t.duration <= 60 * 30 then 2
-		when t.duration <= 60 * 60 then 3
-		when t.duration <= 60 * 120 then 4
-		when t.duration <= 60 * 240 then 5
-		when t.duration > 60 * 240 then 6
+		when t.duration <= 60 * 2 then 0
+		when t.duration <= 60 * 5 then 1
+		when t.duration <= 60 * 10 then 2
+		when t.duration <= 60 * 15 then 3
+		when t.duration <= 60 * 30 then 4
+		when t.duration <= 60 * 60 then 5
+		when t.duration > 60 * 60 then 6
 	end as duration		
-	, case
+    , case
 		when (dbs.distance / t.duration * 3600) = 0 then 0
-		when (dbs.distance / t.duration * 3600) <= 3 then 1
-		when (dbs.distance / t.duration * 3600) <= 5 then 2
-		when (dbs.distance / t.duration * 3600) <= 7 then 3
-		when (dbs.distance / t.duration * 3600) <= 9 then 4
+		when (dbs.distance / t.duration * 3600) <= 4 then 1
+		when (dbs.distance / t.duration * 3600) <= 6 then 2
+		when (dbs.distance / t.duration * 3600) <= 8 then 3
+		when (dbs.distance / t.duration * 3600) <= 10 then 4
 		when (dbs.distance / t.duration * 3600) <= 12 then 5
 		when (dbs.distance / t.duration * 3600) > 12 then 6
 	end as speed -- miles per hour
