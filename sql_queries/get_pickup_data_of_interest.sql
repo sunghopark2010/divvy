@@ -10,13 +10,13 @@ select
 	, extract(hour from t.start_time)::int / 3 as hour_of_day
 	, t.from_station_id
 	, case
-		when dbs.distance = 0 then 0 
-		when dbs.distance <= 1 then 1
-		when dbs.distance <= 2 then 2
-		when dbs.distance <= 3 then 3
-		when dbs.distance <= 5 then 4
-		when dbs.distance <= 8 then 5
-		when dbs.distance > 8 then 6
+		when dbs.distance = 0 then 6 
+		when dbs.distance <= 1 then 0
+		when dbs.distance <= 2 then 1
+		when dbs.distance <= 3 then 2
+		when dbs.distance <= 5 then 3
+		when dbs.distance <= 8 then 4
+		when dbs.distance > 8 then 5
 	end as distance
 	, case
 		when t.duration <= 60 * 2 then 0
@@ -28,13 +28,13 @@ select
 		when t.duration > 60 * 60 then 6
 	end as duration		
     , case
-		when (dbs.distance / t.duration * 3600) = 0 then 0
-		when (dbs.distance / t.duration * 3600) <= 4 then 1
-		when (dbs.distance / t.duration * 3600) <= 6 then 2
-		when (dbs.distance / t.duration * 3600) <= 8 then 3
-		when (dbs.distance / t.duration * 3600) <= 10 then 4
-		when (dbs.distance / t.duration * 3600) <= 12 then 5
-		when (dbs.distance / t.duration * 3600) > 12 then 6
+		when (dbs.distance / t.duration * 3600/1609) = 0 then 0
+		when (dbs.distance / t.duration * 3600/1609) <= 4 then 1
+		when (dbs.distance / t.duration * 3600/1609) <= 6 then 2
+		when (dbs.distance / t.duration * 3600/1609) <= 8 then 3
+		when (dbs.distance / t.duration * 3600/1609) <= 10 then 4
+		when (dbs.distance / t.duration * 3600/1609) <= 12 then 5
+		when (dbs.distance / t.duration * 3600/1609) > 12 then 6
 	end as speed -- miles per hour
 from
 	trips t
