@@ -161,9 +161,9 @@
         <div id="questions">
             <ul>
                 <li>
-                    <a href="javascript:filter([null, [2, 5], null, [0, 5], [2, 3], null, null, null])"><font color="#F2F4F7">morning rush</font></a>
+                    <a href="javascript:filter([null, [2, 5], null, [1, 6], [2, 3], null, null, null])"><font color="#F2F4F7">morning rush</font></a>
                      &
-                    <a href="javascript:filter([null, [2, 5], null, [0, 5], [5, 6], null, null, null])"><font color="#F2F4F7">evening rush</font></a>
+                    <a href="javascript:filter([null, [2, 5], null, [1, 6], [5, 6], null, null, null])"><font color="#F2F4F7">evening rush</font></a>
                 </li>
                 <li>
                     <a href="javascript:filter([null, null, null, null, [3, 4], null, null, null])"><font color="#F2F4F7">many dropoffs before noon</font></a>
@@ -383,7 +383,7 @@
                     .dimension2(dDow)
                     .group(pDows)
                     .barId("dow")
-                    .tickDisplay(["M", "T", "W", "T", "F", "S", "S"])
+                    .tickDisplay(["S", "M", "T", "W", "T", "F", "S"])
                     .x(d3.scale.linear()
                         .domain([0, 7])
                         .rangeRound([0, xWidth * 7])
