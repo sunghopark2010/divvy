@@ -9,14 +9,13 @@
 
     div.controller {
         z-index: 100;
-        background-color: rgba(60, 60, 60, 0.3);
+        background-color: rgba(60, 60, 60, 0.7);
         position: relative;
-        width: 200px;
+        width: 250px;
         padding-top: 10px;
-        text-align: center;
         height: 100%;
         font: 12px sans-serif;
-        color: #ccc;
+        color: #FFFFFF;
     }
 
     #controller-left {
@@ -25,11 +24,15 @@
 
     #controller-right {
         float: right;
-        width: 250px;
     }
 
     div.controller table {
+        text-align: center;
         width: 100%;
+    }
+
+    #gender-filter {
+        width: 90px;
     }
 
     #map-canvas {
@@ -48,42 +51,36 @@
 
     .filter-title {
         font-weight: bold;
-    }
-
-    .filter-title{
-        font-weight: bold;
-        font-size: 110%;
-        color: #542E03;
+        margin-bottom: 5px;
     }
 
     .reset {
-      padding-left: 1em;
-      font-size: smaller;
-      color: #F5F7FA;
+        padding-left: 1em;
+        font-size: smaller;
+        color: #F5F7FA;
     }
 
     .background.bar {
-      fill: #F5F7FA;
+        fill: #FAF0E8;
     }
     
     .foreground.bar {
-      fill: rgba(130, 60, 10, 0.8);
+        fill: coral;
     }
     
     .axis path, .axis line {
-      fill: none;
-      stroke: #542E03;
-      shape-rendering: crispEdges;
+        fill: none;
+        stroke: #FFFFFF;
+        shape-rendering: crispEdges;
     }
 
-    .axis text {
-      font: 10px sans-serif;
-      stroke: #542E03;
+    text {
+        font: 10px sans-serif;
+        fill: #FFFFFF;
     }
 
     .brush rect.extent {
-      fill: rgba(130, 60, 10);
-      fill-opacity: .125;
+      fill: rgba(130, 60, 10, 0.5);
     }
 
     .brush .resize path {
@@ -105,14 +102,29 @@
     }
 
     .td-circle {
-        width: 70px;
         text-align: right;
+        padding-left: 10px;
     }
 
     .td-legend {
         text-align: left;
-        padding-left: 5px
     }
+
+    a.js_questions {
+        text-decoration: none;
+        color: #FFFFFF;
+        background: maroon;
+        font-weight: bold;
+    }
+
+    #sample-size {
+        align: center;
+    }
+
+    li {
+        margin-bottom: 3px;
+    }
+
     </style>
     <title>Divvy</title>
 </head>
@@ -154,22 +166,39 @@
                 </td>
             </tr>
         </table>
+
+        <div id="sample-size">
+            <table>
+                <tr>
+                    <th>Pick-ups</th>
+                    <th>Drop-offs</th>
+                    <th>Total</th>
+                </tr>
+                <tr>
+                    <td><span id="num_sel_pickups">-</span></td>
+                    <td><span id="num_sel_dropoffs">-</span></td>
+                    <td><span id="num_total_pickups">-</span></td>
+                </tr>
+            </table>
+        </div>
     </div>
 
     <div id="controller-right" class="controller">
-        <p><a href="javascript:filter([null, null, null, null, null, null, null, null])"><font color="#F2F4F7">reset all</font></a></p>
+
         <div id="questions">
             <ul>
                 <li>
-                    <a href="javascript:filter([null, [2, 5], null, [1, 6], [2, 3], null, null, null])"><font color="#F2F4F7">morning rush</font></a>
-                     &
-                    <a href="javascript:filter([null, [2, 5], null, [1, 6], [5, 6], null, null, null])"><font color="#F2F4F7">evening rush</font></a>
+                    What's the difference between <a href="javascript:filter([null, [2, 5], null, [1, 6], [2, 3], null, null, null])" class="js_questions">morning rush</a> versus
+                    <a href="javascript:filter([null, [2, 5], null, [1, 6], [5, 6], null, null, null])" class="js_questions">evening rush</a>?
                 </li>
                 <li>
-                    <a href="javascript:filter([null, null, null, null, [3, 4], null, null, null])"><font color="#F2F4F7">many dropoffs before noon</font></a>
+                    Where is the <a href="javascript:filter([null, null, null, null, null, null, [4, 7], null])" class="js_questions">favorite drop-off place</a> for far-riders?
                 </li>
                 <li>
-                    <a href="javascript:filter([null, null, null, null, null, null, [4, 7], null])"><font color="#F2F4F7">favorite dropoff for far riders</font></a>
+                    Do people ride shorter in <a href="javascript:filter([null, null, [6, 7], null, null, null, null, null])" class="js_questions">December</a> compared to <a href="javascript:filter([null, null, [2, 3], null, null, null, null, null])" class="js_questions">August</a>?
+                </li>
+                <li>
+                    Or, <a href="javascript:filter([null, null, null, null, null, null, null, null])" class="js_questions">start from scratch</a> and find your own patterns!
                 </li>
             </ul>
             <br>
@@ -197,40 +226,25 @@
                 </td>
             </tr>
         </table>
-        <div id="sample-size" style="color:#542E03;align=center;font-size:12px;font-weight:bold">
-            <table>
-                <tr>
-                    <th>Pick-ups</th>
-                    <th>Drop-offs</th>
-                    <th>Total</th>
-                </tr>
-                <tr>
-                    <td><span id="num_sel_pickups">-</span></td>
-                    <td><span id="num_sel_dropoffs">-</span></td>
-                    <td><span id="num_total_pickups">-</span></td>
-                </tr>
-            </table>
-        </div>
-        <div id="legend" style="color:#542E03;font-size:12px;font-weight:bold">
+
+        <div id="legend">
             <table>
                 <tr>
                     <td class="td-circle">
                         <svg xmlns="http://www.w3.org/2000/svg" class="circle">
-                            <circle cx="8" cy="8" r="8" fill="#963618" opacity="0.6"/>
+                            <circle cx="8" cy="8" r="8" fill="#963618" opacity="0.6"></circle>
                         </svg>
                     </td>
                     <td class="td-legend">
                         Pick-up > Drop-off 
                     </td>
-                </tr>
-                <tr>
                     <td class="td-circle">
                         <svg xmlns="http://www.w3.org/2000/svg" class="circle">
-                            <circle cx="8" cy="8" r="8" fill="#142C54" opacity="0.6"/>
+                            <circle cx="8" cy="8" r="8" fill="#142C54" opacity="0.6"></circle>
                         </svg>
                     </td>
                     <td class="td-legend">
-                        Pick-up < Drop-off
+                        Drop-off > Pick-up
                     </td>
                 </tr>
             </table>
@@ -351,6 +365,7 @@
                     .round(Math.floor)
                     .barId("gender")
                     .tickDisplay(["M", "F"])
+                    .margin({left: 10, right: 10, bottom: 30, top: 0})
                     .x(d3.scale.linear()
                         .domain([0, 2])
                         .rangeRound([0, xWidth * 2])
@@ -362,6 +377,7 @@
                     .group(pAges)
                     .barId("age")
                     .tickDisplay(["10s", "20s", "30s", "40s", "50s", "60s", ">=70"])
+                    .margin({left: 10, right: 10, bottom: 30, top: 0})
                     .x(d3.scale.linear()
                         .domain([0, 7])
                         .rangeRound([0, xWidth * 7])
@@ -372,10 +388,11 @@
                     .dimension2(dMonth)
                     .group(pMonths)
                     .barId("month")
-                    .tickDisplay(["J", "J", "A"])
+                    .tickDisplay(["J", "J", "A", "S", "O", "N", "D"])
+                    .margin({left: 10, right: 10, bottom: 15, top: 0})
                     .x(d3.scale.linear()
-                        .domain([0, 3])
-                        .rangeRound([0, xWidth * 3])
+                        .domain([0, 7])
+                        .rangeRound([0, xWidth * 7])
                     ),
 
                 filterChart()
@@ -383,7 +400,8 @@
                     .dimension2(dDow)
                     .group(pDows)
                     .barId("dow")
-                    .tickDisplay(["S", "M", "T", "W", "T", "F", "S"])
+                    .tickDisplay(["M", "T", "W", "T", "F", "S", "S"])
+                    .margin({left: 10, right: 10, bottom: 15, top: 0})
                     .x(d3.scale.linear()
                         .domain([0, 7])
                         .rangeRound([0, xWidth * 7])
@@ -395,6 +413,7 @@
                     .group(pHods)
                     .barId("hod")
                     .tickDisplay(["0-3", "3-6", "6-9", "9-12", "12-15", "15-18", "18-21", "21-24"])
+                    .margin({left: 10, right: 10, bottom: 35, top: 0})
                     .x(d3.scale.linear()
                         .domain([0, 8])
                         .rangeRound([0, xWidth * 8])
@@ -406,6 +425,7 @@
                     .group(pDurations)
                     .barId("duration")
                     .tickDisplay(["<=2m", "<=5m", "<=10m", "<=15m", "<=30m", "<=1h", ">1h"])
+                    .margin({left: 10, right: 10, bottom: 40, top: 0})
                     .x(d3.scale.linear()
                         .domain([0, 7])
                         .rangeRound([0, xWidth * 7])
@@ -417,6 +437,7 @@
                     .group(pDistances)
                     .barId("distance")
                     .tickDisplay(["0mi", "<=1mi", "<=2mi", "<=3mi", "<=5mi", "<=8mi", ">8mi"])
+                    .margin({left: 10, right: 10, bottom: 40, top: 0})
                     .x(d3.scale.linear()
                         .domain([0, 7])
                         .rangeRound([0, xWidth * 7])
@@ -427,7 +448,8 @@
                     .dimension2(dSpeed)
                     .group(pSpeeds)
                     .barId("speed")
-                    .tickDisplay(["0mi/h", "<=4mi/h", "<=6mi/h", "<=8mi/h", "<=10mi/h", "<=12mi/h", ">12mi/h"])
+                    .tickDisplay(["0mph", "<=4mph", "<=6mph", "<=8mph", "<=10mph", "<=12mph", ">12mph"])
+                    .margin({left: 10, right: 10, bottom: 48, top: 0})
                     .x(d3.scale.linear()
                         .domain([0, 7])
                         .rangeRound([0, xWidth * 7])
@@ -449,7 +471,7 @@
                 d3.select("#num_sel_dropoffs").text(d3.format(",d")(dAll.value()));
 
                 circles.map(function(d) {d.setMap(null);});
-                var diff, fColor;
+                var diff, fColor, cRadius;
                 stations.map(function(d) {
                     diff = _find_diff(d.station_id);
                     if (diff > 0) {
@@ -459,7 +481,7 @@
                     }
 
                     circles.push(new google.maps.Circle({
-                        radius: Math.abs(diff),
+                        radius: Math.abs(diff) / 3,
                         center: new google.maps.LatLng(d.latitude, d.longitude),
                         map: map,
                         fillColor: fColor,
@@ -515,9 +537,9 @@
                 if (!filterChart.id) filterChart.id = 0;
 
                 var id = filterChart.id++,
-                    margin = {top: 0, right: 10, bottom: 50, left: 10},
+                    margin,
                     x,
-                    y = d3.scale.linear().range([100, 0]),
+                    y = d3.scale.linear().range([86, 0]),
                     axis = d3.svg.axis().orient("bottom"),
                     brush = d3.svg.brush(),
                     brushDirty,
@@ -715,6 +737,12 @@
                     axis.ticks(tickDisplay.length);
                     axis.tickFormat(function(d, i) { return tickDisplay[i]; });
 
+                    return chart;
+                }
+
+                chart.margin = function(_) {
+                    if (!arguments.length) return margin;
+                    margin = _;
                     return chart;
                 }
                 return d3.rebind(chart, brush, "on");
