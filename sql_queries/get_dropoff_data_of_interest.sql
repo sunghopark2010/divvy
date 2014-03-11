@@ -10,13 +10,13 @@ select
 	, extract(hour from t.end_time)::int / 3 as hour_of_day
 	, t.to_station_id
 	, case
-		when dbs.distance = 0 then 0 
-		when dbs.distance <= 1 then 1
-		when dbs.distance <= 2 then 2
-		when dbs.distance <= 3 then 3
-		when dbs.distance <= 5 then 4
-		when dbs.distance <= 8 then 5
-		when dbs.distance > 8 then 6
+		when dbs.distance = 0 then 6 
+		when dbs.distance <= 1 then 0
+		when dbs.distance <= 2 then 1
+		when dbs.distance <= 3 then 2
+		when dbs.distance <= 5 then 3
+		when dbs.distance <= 8 then 4
+		when dbs.distance > 8 then 5
 	end as distance
 	, case
 		when t.duration <= 60 * 2 then 0
